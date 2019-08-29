@@ -1,0 +1,67 @@
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+#
+version: 2
+jobs:
+  build:
+    docker:
+      - image: golang:1.6.4
+    steps:
+      - checkout
+      - setup_remote_docker:   # (2)
+          docker_layer_caching: true # (3)
+
+      - run:
+          name: Install Docker client
+          command: |
+            set -x
+            VER="17.03.0-ce"
+            curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
+            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            mv /tmp/docker/* /usr/bin
+
+      # build and push Docker image
+      - run:
+          name: Push to Docker Hub
+          command: |
+            TAG=0.1.$CIRCLE_BUILD_NUM
+            docker build -t $ONEUPS_DOCKER_REGISTRY_HOST/$DOCKER_IMAGE_NAME:$CIRCLE_SHA1 .
+            docker login -u $ONEUPS_DOCKER_REGISTRY_USERNAME -p $ONEUPS_DOCKER_REGISTRY_PASSWORD
+            docker push $ONEUPS_DOCKER_REGISTRY_HOST/$DOCKER_IMAGE_NAME:$CIRCLE_SHA1
+  deploy_dev:
+    docker:
+      - image: devopsil/kops-docker:latest
+    steps:
+      - checkout
+      - run:
+          name: deploy
+          command: bash ./bin/deploy.sh $CIRCLE_SHA1 dev
+
+workflows:
+  version: 2
+  build-n-deploy:
+    jobs:
+      - build:
+          context: org-global
+      - deploy_dev:
+          context: org-global
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - develop
+
+      # - hold:
+      #     type: approval
+      #     requires:
+      #       - deploy_dev
+      # - deploy_prod:
+      #     context: org-global
+      #     requires:
+      #       - hold
+      #     filters:
+      #       branches:
+      #         only:
+      #           - master

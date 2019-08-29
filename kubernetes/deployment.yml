@@ -1,0 +1,123 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: discuss-locationservice
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 1
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: discuss-locationservice
+    spec:
+      imagePullSecrets:
+        - name: awsecr
+        - name: regcred
+      initContainers:
+      - name: migrate
+        image: "index.docker.io/oneups/locationservice:${BUILD_VERSION}"
+        command: ["npm","run","db:migrate"]
+        env:
+          - name: DB_CLIENT
+            value: "mysql"
+          - name: DB_CHARSET
+            value: "utf8"
+          - name: ENABLE_DB_SSL
+            value: "true"
+          - name: AWS_AVATAR_BUCKET
+            valueFrom:
+              secretKeyRef:
+                name: discuss-userservice-aws-config
+                key: dbHost
+          - name: DB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: discuss-userservice-db-config
+                key: dbHost
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: discuss-userservice-db-config
+                key: dbUser
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: discuss-userservice-db-config
+                key: dbPassword
+          - name: DB_NAME
+            valueFrom:
+              secretKeyRef:
+                name: discuss-userservice-db-config
+                key: dbName
+      containers:
+      - env:
+        - name: NODE_ENV
+          value: production
+        - name: SERVER_PORT
+          value: "8080"
+        - name: DB_CLIENT
+          value: "mysql"
+        - name: DB_CHARSET
+          value: "utf8"
+        - name: ENABLE_DB_SSL
+          value: "true"
+        - name: DB_POOL_MIN
+          value: "2"
+        - name: DB_POOL_MAX
+          value: "10"
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: discuss-locationservice-db-config
+              key: dbHost
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: discuss-locationservice-db-config
+              key: dbUser
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: discuss-locationservice-db-config
+              key: dbPassword
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: discuss-locationservice-db-config
+              key: dbName
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: discuss-aws-config
+              key: accessKeyId
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: discuss-aws-config
+              key: secretAccessKey
+        - name: AWS_REGION
+          value: "eu-west-2"
+        - name: TOKEN_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: discuss-config
+              key: tokenSecret
+        image: index.docker.io/oneups/userservice:${BUILD_VERSION}
+        imagePullPolicy: Always
+        name: userservice
+        command: ["node"]
+        args: ["src/server.js"]
+        ports:
+        - containerPort: 8080
+        stdin: true
+        tty: true
+      restartPolicy: Always
+status: {}

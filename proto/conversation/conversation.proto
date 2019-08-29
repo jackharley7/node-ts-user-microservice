@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package conversation;
+
+option go_package = "conversationpb";
+
+// DEFINITIONS
+message Link {
+	uint32 id = 1;
+  string title = 2;
+  string description = 3;
+	string type = 4;
+	string url = 5;
+	string site = 6;
+	string siteName = 7;
+	string imageUrl = 8;
+	string videoUrl = 9;
+}
+
+message User {
+  uint32 id = 1;
+  string name = 2;
+  string username = 3;
+  string avatar = 4;
+  string twitterHandle = 5;
+  bool twitterVerified = 6;
+  bool isTwitterAccount = 7;
+}
+
+message ConversationEntry {
+  uint32 id = 1;
+  string created_at = 2;
+  string content = 3;
+  uint32 user_id = 4;
+  uint32 conversation_id = 5;
+  repeated Link Links = 6;
+}
+
+message Conversation {
+  uint32 id = 1;
+  string title = 2;
+  string description = 3;
+  repeated User users = 4;
+  Link link = 5;
+  repeated ConversationEntry entries = 6;
+  bool accepted = 7;
+}
+
+message Invitation {
+  uint32 id = 1;
+  uint32 user_id = 2;
+  string twitter_screenname = 3;
+  string name = 4;
+  string avatar = 5;
+  Conversation conversation = 6;
+}
+
+// IO
+message CreateLinkMessage {
+	Link link = 1;
+}
+message CreateLinkResponse {
+	Link link = 1;
+}
+
+message BuildLinkFromURLMessage {
+  string url = 1;
+}
+message BuildLinkFromURLResponse {
+	Link link = 1;
+}
+
+message CreateConversationMessage {
+  Conversation conversation = 1;
+  Invitation invitation = 2;
+  bool inviteTwitterUser = 3;
+}
+message CreateConversationResponse {
+  Conversation conversation = 1;
+}
+
+message GetByUserIDMessage {
+  uint32 user_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+message GetByUserIDResponse {
+  repeated Conversation conversationList = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  int32 count = 4;
+}
+
+message GetInvitationsByUserIDMessage {
+  uint32 user_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+message GetInvitationsByUserIDResponse {
+  repeated Invitation invitationList = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  int32 count = 4;
+}
+
+message GetByIDMessage {
+  uint32 conversation_id = 1;
+}
+message GetByIDResponse {
+  Conversation conversation = 1;
+}
+
+// SERVICES
+service ConversationService {
+  rpc CreateConversation(CreateConversationMessage) returns (CreateConversationResponse);
+  rpc GetByUserID(GetByUserIDMessage) returns (GetByUserIDResponse);
+  // rpc GetByID(GetByIDMessage) returns (GetByIDResponse);
+  rpc CreateLink(CreateLinkMessage) returns (CreateLinkResponse);
+  rpc BuildLinkFromURL(BuildLinkFromURLMessage) returns (BuildLinkFromURLResponse);
+  rpc GetInvitationsByUserID(GetInvitationsByUserIDMessage) returns (GetInvitationsByUserIDResponse);
+}

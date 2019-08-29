@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package users;
+
+option go_package = "userspb";
+
+message User {
+	int64 id = 1;
+  string name = 2;
+  string username = 3;
+	string avatar = 4;
+	string twitterHandle = 5;
+	bool twitterVerified = 6;
+	string timeZone = 7;
+}
+
+// Get User by Twitter screenname
+message GetUserByTwitterScreenNameMessage {
+	string screenname = 1;
+}
+message GetUserByTwitterScreenNameResponse {
+	User user = 1;
+}
+
+// Get Users by Ids
+message GetUsersByIdsMessage {
+  repeated int64 userIds = 1;
+}
+message GetUsersByIdsResponse {
+  repeated User users = 1;
+}
+
+service UserService {
+  rpc GetUserByTwitterScreenName(GetUserByTwitterScreenNameMessage) returns (GetUserByTwitterScreenNameResponse);
+  rpc GetUsersByIds(GetUsersByIdsMessage) returns (GetUsersByIdsResponse);
+}

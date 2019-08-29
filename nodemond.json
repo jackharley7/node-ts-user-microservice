@@ -1,0 +1,14 @@
+{
+  "verbose": true,
+  "ignore": ["src/*"],
+  "watch": [
+    "app/**/*.ts"
+  ],
+  "execMap": {
+    "js": "node --inspect --harmony --legacy-watch --debug=5858"
+  },
+  "exec": "node ./src/server.js",
+  "events": {
+    "restart": "npm run prestart:server"
+  }
+}
