@@ -38,7 +38,7 @@
     "@types/request-promise": "~4.1.37",
     "@types/sparkpost": "^2.1.4",
     "@types/twit": "^2.2.20",
-    "aws-sdk": "^2.413.0",
+    "aws-sdk": "^2.814.0",
     "bcrypt-nodejs": "0.0.3",
     "bluebird": "~3.5.1",
     "google-protobuf": "^3.7.0-rc.3",
